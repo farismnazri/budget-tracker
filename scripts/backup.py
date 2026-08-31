@@ -152,20 +152,19 @@ subprocess.run(
         "sync",
         str(BACKUPS),
         RCLONE_REMOTE,
-        "--include",
-        "????-??-??-budget.db",
-        "--include",
-        "????-??-??-budget.json",
-        "--include",
-        "monthly-????-??-budget.db",
-        "--include",
-        "monthly-????-??-budget.json",
-        "--exclude",
-        "*",
+        "--filter",
+        "+ ????-??-??-budget.db",
+        "--filter",
+        "+ ????-??-??-budget.json",
+        "--filter",
+        "+ monthly-????-??-budget.db",
+        "--filter",
+        "+ monthly-????-??-budget.json",
+        "--filter",
+        "- *",
     ],
     check=True,
 )
-
 
 print(
     f"Backup complete: "
