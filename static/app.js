@@ -292,10 +292,34 @@ function openPay(kind,id,name,amount) {
   $('#payModal').showModal();
 }
 
+function resetCategoryForm() {
+  $('#categoryEditId').value = "";
+  $('#categoryModalTitle').textContent = "New category";
+  $('#categorySubmitBtn').textContent = "Create category";
+  $('#categoryName').value = "";
+  $('#categoryIcon').value = "utensils";
+  $('#categoryColor').value = "#54a0ff";
+  renderIconPicker();
+  renderColorPicker();
+}
+
+function openCategoryEditor(category) {
+  $('#categoryEditId').value = category.id;
+  $('#categoryModalTitle').textContent = "Edit category";
+  $('#categorySubmitBtn').textContent = "Save changes";
+  $('#categoryName').value = category.name || "";
+  $('#categoryIcon').value = category.icon || "utensils";
+  $('#categoryColor').value = category.color || "#54a0ff";
+  renderIconPicker();
+  renderColorPicker();
+  $('#categoryModal').showModal();
+}
+
 function renderCategorySettings() {
   const root=$('#categorySettings');
   if(!state.categories.length){root.innerHTML=empty('No categories yet.');return;}
-  root.innerHTML=state.categories.map(c=>`<div class="list-row" style="opacity:${c.archived?.62:1}">${iconBox(c)}<div class="row-main"><strong>${esc(c.name)}</strong><span>${c.archived?'Archived':'Active'}</span></div>${c.archived?`<button class="row-action" data-restore-cat="${c.id}">Restore</button>`:`<button class="row-action" data-archive-cat="${c.id}">Archive</button>`}</div>`).join('');
+  root.innerHTML=state.categories.map(c=>`<div class="list-row category-settings-row" style="opacity:${c.archived?.62:1}">${iconBox(c)}<div class="row-main"><strong>${esc(c.name)}</strong><span>${c.archived?'Archived':'Active'}</span></div><div class="row-actions"><button class="row-action" data-edit-cat="${c.id}">Edit</button>${c.archived?`<button class="row-action" data-restore-cat="${c.id}">Restore</button>`:`<button class="row-action" data-archive-cat="${c.id}">Archive</button>`}</div></div>`).join('');
+  $$('[data-edit-cat]',root).forEach(b=>b.onclick=()=>{const c=state.categories.find(x=>x.id===Number(b.dataset.editCat));if(c)openCategoryEditor(c);});
   $$('[data-archive-cat]',root).forEach(b=>b.onclick=async()=>{try{const r=await api(`/api/categories/${b.dataset.archiveCat}`,{method:'DELETE'});toast(r.action==='archived'?'Category archived. History preserved.':'Unused category deleted.');await loadBootstrap();renderCategorySettings();}catch(e){toast(e.message,true)}});
   $$('[data-restore-cat]',root).forEach(b=>b.onclick=async()=>{const c=state.categories.find(x=>x.id===Number(b.dataset.restoreCat));try{await api(`/api/categories/${c.id}`,{method:'PUT',body:JSON.stringify({archived:false})});toast('Category restored.');await loadBootstrap();renderCategorySettings();}catch(e){toast(e.message,true)}});
 }
@@ -335,19 +359,32 @@ function renderColorPicker() {
   });
 }
 
-async function createCategory(e) {
+async function saveCategory(e) {
   e.preventDefault();
+  const editId = Number($('#categoryEditId').value || 0);
+  const payload = {
+    name: $('#categoryName').value.trim(),
+    color: $('#categoryColor').value,
+    icon: $('#categoryIcon').value
+  };
+  if (!payload.name) return toast('Enter a category name.', true);
   try {
-    await api('/api/categories',{method:'POST',body:JSON.stringify({name:$('#categoryName').value,color:$('#categoryColor').value,icon:$('#categoryIcon').value})});
+    if (editId) {
+      // Update the existing category record in place. Transactions keep their
+      // category_id, so historical rows resolve to the new name/icon/color.
+      await api(`/api/categories/${editId}`,{method:'PUT',body:JSON.stringify(payload)});
+    } else {
+      await api('/api/categories',{method:'POST',body:JSON.stringify(payload)});
+    }
     $('#categoryModal').close();
-    $('#categoryName').value='';
-    $('#categoryIcon').value='utensils';
-    $('#categoryColor').value='#54a0ff';
-    renderIconPicker();
-    renderColorPicker();
-    toast('Category created.');
+    resetCategoryForm();
+    toast(editId ? 'Category updated. History follows this category.' : 'Category created.');
     await loadBootstrap();
     renderCategorySettings();
+    const activeTab = $('.bottom-nav button.active')?.dataset.tab;
+    if (activeTab === 'history') await loadHistory();
+    if (activeTab === 'planned') await loadPayments();
+    if (activeTab === 'trends') await loadTrends();
   } catch(err){toast(err.message,true)}
 }
 async function createRecurring(e) {
@@ -390,9 +427,9 @@ function wireUI() {
   $('#quickAmount').addEventListener('keydown',e=>{if(e.key==='Enter')addTransaction()});
   $('#noteToggle').onclick=()=>{const n=$('#quickNote');n.classList.toggle('hidden');$('#noteToggle').textContent=n.classList.contains('hidden')?'+ Add note':'− Hide note';if(!n.classList.contains('hidden'))n.focus();};
   $('#refreshBtn').onclick=async()=>{try{await loadBootstrap();const active=$('.bottom-nav button.active')?.dataset.tab;if(active==='trends')await loadTrends();if(active==='planned')await loadPayments();if(active==='history')await loadHistory();toast('Refreshed.');}catch(e){toast(e.message,true)}};
-  $$('[data-modal]').forEach(b=>b.onclick=()=>$('#'+b.dataset.modal).showModal());
+  $$('[data-modal]').forEach(b=>b.onclick=()=>{if(b.dataset.modal==='categoryModal')resetCategoryForm();$('#'+b.dataset.modal).showModal();});
   $$('[data-close-dialog]').forEach(b=>b.onclick=()=>b.closest('dialog').close());
-  $('#categoryForm').addEventListener('submit',createCategory); $('#recurringForm').addEventListener('submit',createRecurring); $('#plannedForm').addEventListener('submit',createPlanned); $('#payForm').addEventListener('submit',payItem); $('#editTxForm').addEventListener('submit',saveEditTx); $('#deleteTxBtn').onclick=deleteEditTx;
+  $('#categoryForm').addEventListener('submit',saveCategory); $('#recurringForm').addEventListener('submit',createRecurring); $('#plannedForm').addEventListener('submit',createPlanned); $('#payForm').addEventListener('submit',payItem); $('#editTxForm').addEventListener('submit',saveEditTx); $('#deleteTxBtn').onclick=deleteEditTx;
   $$('#trendPeriod button').forEach(b=>b.onclick=()=>{state.trendPeriod=b.dataset.period;$$('#trendPeriod button').forEach(x=>x.classList.toggle('active',x===b));loadTrends();});
   $('#trendAnchor').onchange=loadTrends; $('#historyApply').onclick=loadHistory;
   wireStaticIcons();

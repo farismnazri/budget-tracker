@@ -1,4 +1,4 @@
-const CACHE='budget-tracker-v2-shell';
+const CACHE='budget-tracker-v3-shell';
 const SHELL=['/','/static/style.css','/static/app.js','/static/app-icon.png','/manifest.webmanifest'];
 self.addEventListener('install',e=>e.waitUntil(
   caches.open(CACHE).then(c=>c.addAll(SHELL)).then(()=>self.skipWaiting())

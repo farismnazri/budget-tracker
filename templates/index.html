@@ -166,7 +166,8 @@
 
   <dialog id="categoryModal" class="modal">
     <form method="dialog" class="modal-card" id="categoryForm">
-      <div class="modal-head"><h2>New category</h2><button type="button" class="icon-button" data-close-dialog aria-label="Close"><span data-ui-icon="x"></span></button></div>
+      <div class="modal-head"><h2 id="categoryModalTitle">New category</h2><button type="button" class="icon-button" data-close-dialog aria-label="Close"><span data-ui-icon="x"></span></button></div>
+      <input id="categoryEditId" type="hidden">
       <label>Name<input id="categoryName" required maxlength="40" placeholder="e.g. Coffee"></label>
       <div class="field-group">
         <span class="field-label">Icon</span>
@@ -178,7 +179,7 @@
         <div id="categoryColorPresets" class="color-swatches" role="radiogroup" aria-label="Category color"></div>
         <label class="custom-color-label">Custom color<input id="categoryColor" type="color" value="#54a0ff"></label>
       </div>
-      <button type="submit" value="default" class="primary-button">Create category</button>
+      <button type="submit" value="default" class="primary-button" id="categorySubmitBtn">Create category</button>
     </form>
   </dialog>
 
