@@ -22,7 +22,7 @@
         <p class="eyebrow" id="greeting">Budget tracker</p>
         <h1 id="pageTitle">Quick add</h1>
       </div>
-      <button class="icon-button" id="refreshBtn" aria-label="Refresh">↻</button>
+      <button class="icon-button" id="refreshBtn" aria-label="Refresh"><span data-ui-icon="refresh"></span></button>
     </header>
 
     <section class="view active" data-view="add">
@@ -37,7 +37,7 @@
             <span>RM</span>
             <input id="quickAmount" type="number" inputmode="decimal" min="0" step="0.01" placeholder="0.00" autocomplete="off">
           </div>
-          <input id="quickDate" type="date" value="{{ today }}">
+          <input id="quickDate" class="date-input" type="date" value="{{ today }}">
           <div class="category-grid" id="quickCategories"></div>
           <button class="secondary-link" id="noteToggle">+ Add note</button>
           <input class="hidden" id="quickNote" type="text" maxlength="240" placeholder="Optional note or merchant">
@@ -68,7 +68,7 @@
           <h2 id="trendTotal">RM 0.00</h2>
           <p class="muted" id="trendCompare">No previous data yet</p>
         </div>
-        <input id="trendAnchor" type="date" value="{{ today }}">
+        <input id="trendAnchor" class="date-input" type="date" value="{{ today }}">
       </div>
 
       <div class="glass chart-card">
@@ -125,9 +125,9 @@
 
     <section class="view" data-view="history">
       <div class="glass history-filter">
-        <input id="historyStart" type="date">
+        <input id="historyStart" class="date-input" type="date">
         <span>to</span>
-        <input id="historyEnd" type="date">
+        <input id="historyEnd" class="date-input" type="date">
         <button class="small-button" id="historyApply">Apply</button>
       </div>
       <div class="section-head"><h2>Transactions</h2></div>
@@ -155,34 +155,42 @@
   </main>
 
   <nav class="bottom-nav" aria-label="Main navigation">
-    <button class="active" data-tab="add"><span>＋</span><small>Add</small></button>
-    <button data-tab="trends"><span>⌁</span><small>Trends</small></button>
-    <button data-tab="planned"><span>◷</span><small>Planned</small><b id="dueBadge" class="badge hidden">0</b></button>
-    <button data-tab="history"><span>≡</span><small>History</small></button>
-    <button data-tab="settings"><span>⚙</span><small>Settings</small></button>
+    <button class="active" data-tab="add"><span class="nav-icon" data-ui-icon="plus"></span><small>Add</small></button>
+    <button data-tab="trends"><span class="nav-icon" data-ui-icon="chart"></span><small>Trends</small></button>
+    <button data-tab="planned"><span class="nav-icon" data-ui-icon="calendarClock"></span><small>Planned</small><b id="dueBadge" class="badge hidden">0</b></button>
+    <button data-tab="history"><span class="nav-icon" data-ui-icon="list"></span><small>History</small></button>
+    <button data-tab="settings"><span class="nav-icon" data-ui-icon="settings"></span><small>Settings</small></button>
   </nav>
 
   <div class="toast" id="toast"></div>
 
   <dialog id="categoryModal" class="modal">
     <form method="dialog" class="modal-card" id="categoryForm">
-      <div class="modal-head"><h2>New category</h2><button type="button" class="icon-button" data-close-dialog>×</button></div>
+      <div class="modal-head"><h2>New category</h2><button type="button" class="icon-button" data-close-dialog aria-label="Close"><span data-ui-icon="x"></span></button></div>
       <label>Name<input id="categoryName" required maxlength="40" placeholder="e.g. Coffee"></label>
-      <label>Icon<select id="categoryIcon"></select></label>
-      <label>Color<input id="categoryColor" type="color" value="#54a0ff"></label>
+      <div class="field-group">
+        <span class="field-label">Icon</span>
+        <input id="categoryIcon" type="hidden" value="utensils">
+        <div id="categoryIconPicker" class="icon-picker" role="radiogroup" aria-label="Category icon"></div>
+      </div>
+      <div class="field-group">
+        <span class="field-label">Color</span>
+        <div id="categoryColorPresets" class="color-swatches" role="radiogroup" aria-label="Category color"></div>
+        <label class="custom-color-label">Custom color<input id="categoryColor" type="color" value="#54a0ff"></label>
+      </div>
       <button type="submit" value="default" class="primary-button">Create category</button>
     </form>
   </dialog>
 
   <dialog id="recurringModal" class="modal">
     <form method="dialog" class="modal-card" id="recurringForm">
-      <div class="modal-head"><h2>Recurring payment</h2><button type="button" class="icon-button" data-close-dialog>×</button></div>
+      <div class="modal-head"><h2>Recurring payment</h2><button type="button" class="icon-button" data-close-dialog aria-label="Close"><span data-ui-icon="x"></span></button></div>
       <label>Name<input id="recurringName" required maxlength="80" placeholder="TIME Internet"></label>
       <label>Amount (RM)<input id="recurringAmount" type="number" inputmode="decimal" step="0.01" min="0" required></label>
       <label>Category<select id="recurringCategory" required></select></label>
       <div class="form-row">
         <label>Every<select id="recurringFrequency"><option value="monthly">Month</option><option value="weekly">Week</option><option value="yearly">Year</option></select></label>
-        <label>Next due<input id="recurringDue" type="date" required value="{{ today }}"></label>
+        <label>Next due<input id="recurringDue" class="date-input" type="date" required value="{{ today }}"></label>
       </div>
       <button type="submit" value="default" class="primary-button">Save recurring</button>
     </form>
@@ -190,21 +198,21 @@
 
   <dialog id="plannedModal" class="modal">
     <form method="dialog" class="modal-card" id="plannedForm">
-      <div class="modal-head"><h2>Planned payment</h2><button type="button" class="icon-button" data-close-dialog>×</button></div>
+      <div class="modal-head"><h2>Planned payment</h2><button type="button" class="icon-button" data-close-dialog aria-label="Close"><span data-ui-icon="x"></span></button></div>
       <label>Name<input id="plannedName" required maxlength="80" placeholder="Car major service"></label>
       <label>Estimated amount (RM)<input id="plannedAmount" type="number" inputmode="decimal" step="0.01" min="0" required></label>
       <label>Category<select id="plannedCategory" required></select></label>
-      <label>Due date<input id="plannedDue" type="date" required value="{{ today }}"></label>
+      <label>Due date<input id="plannedDue" class="date-input" type="date" required value="{{ today }}"></label>
       <button type="submit" value="default" class="primary-button">Save planned payment</button>
     </form>
   </dialog>
 
   <dialog id="payModal" class="modal">
     <form method="dialog" class="modal-card" id="payForm">
-      <div class="modal-head"><h2 id="payTitle">Mark paid</h2><button type="button" class="icon-button" data-close-dialog>×</button></div>
+      <div class="modal-head"><h2 id="payTitle">Mark paid</h2><button type="button" class="icon-button" data-close-dialog aria-label="Close"><span data-ui-icon="x"></span></button></div>
       <input id="payKind" type="hidden"><input id="payId" type="hidden">
       <label>Actual amount (RM)<input id="payAmount" type="number" inputmode="decimal" step="0.01" min="0" required></label>
-      <label>Paid on<input id="payDate" type="date" value="{{ today }}" required></label>
+      <label>Paid on<input id="payDate" class="date-input" type="date" value="{{ today }}" required></label>
       <label>Note<input id="payNote" maxlength="240" placeholder="Optional"></label>
       <button type="submit" value="default" class="primary-button">Create transaction</button>
     </form>
@@ -212,10 +220,10 @@
 
   <dialog id="editTxModal" class="modal">
     <form method="dialog" class="modal-card" id="editTxForm">
-      <div class="modal-head"><h2>Edit transaction</h2><button type="button" class="icon-button" data-close-dialog>×</button></div>
+      <div class="modal-head"><h2>Edit transaction</h2><button type="button" class="icon-button" data-close-dialog aria-label="Close"><span data-ui-icon="x"></span></button></div>
       <input id="editTxId" type="hidden">
       <label>Amount (RM)<input id="editTxAmount" type="number" inputmode="decimal" step="0.01" min="0.01" required></label>
-      <label>Date<input id="editTxDate" type="date" required></label>
+      <label>Date<input id="editTxDate" class="date-input" type="date" required></label>
       <label>Category<select id="editTxCategory" required></select></label>
       <label>Note<input id="editTxNote" maxlength="240"></label>
       <button type="submit" value="default" class="primary-button">Save changes</button>
