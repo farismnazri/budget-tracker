@@ -1,0 +1,13 @@
+{
+  "name": "Budget Tracker",
+  "short_name": "Budget",
+  "description": "Private personal spending tracker",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#070b14",
+  "theme_color": "#0a1020",
+  "icons": [
+    {"src":"/static/app-icon.png","sizes":"512x512","type":"image/png"}
+  ]
+}
